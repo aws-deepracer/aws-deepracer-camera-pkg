@@ -38,8 +38,7 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 
 - Clone the camera_pkg and the deepracer_interfaces_pkg on the DeepRacer device:
 
-- git clone <<git repo URL for deepracer_interfaces_pkg>>
-
+        git clone <<git repo URL for deepracer_interfaces_pkg>>
         git clone <<git repo URL for camera_pkg>>
 
 - Resolve the camera_pkg dependencies:
