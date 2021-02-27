@@ -79,6 +79,27 @@ To launch the built camera_node as root user on the DeepRacer device open up ano
 
         ros2 launch camera_pkg camera_pkg_launch.py
 
+### Activating the camera image publisher using CLI:
+
+Once the camera_pkg_launch.py has been kicked-off, open up a adjacent new terminal as root user:
+
+1. Navigate to the deepracer workspace:
+        
+        cd ~/deepracer_ws
+
+1. Source the ROS2 Foxy setup bash script:
+
+        source /opt/ros/foxy/setup.bash
+
+1. Source the setup script for the installed packages:
+
+        source ~/deepracer_ws/install/setup.bash 
+
+1. Activate the camera publisher to start publishing images using the below ros2 service call:
+
+        ros2 service call /camera_pkg/media_state deepracer_interfaces_pkg/srv/VideoStateSrv "{activate_video: 1}"
+
+
 ## Launch Files
 
 The  camera_pkg_launch.py is also included in this package that gives an example of how to launch the node independently from the core application.
