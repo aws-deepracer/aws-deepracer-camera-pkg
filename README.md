@@ -14,7 +14,7 @@ The source code is released under Apache 2.0 (https://aws.amazon.com/apache-2-0/
 
 ### Prerequisites
 
-The DeepRacer device comes with all the pre-requisite packages and libraries installed to build and run the camera_pkg. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-racer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
+The DeepRacer device comes with all the pre-requisite packages and libraries installed to run the camera_pkg. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-racer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
 
 The camera_pkg specifically depends on the following ROS2 packages as build and execute dependencies:
 
@@ -24,7 +24,7 @@ The camera_pkg specifically depends on the following ROS2 packages as build and 
 4. *sensor_msgs* - This package defines messages for commonly used sensors, including cameras and scanning laser rangefinders.
 
 
-### Downloading and Building
+## Downloading and Building
 
 Open up a terminal on the DeepRacer device and run the following commands as root user.
 
