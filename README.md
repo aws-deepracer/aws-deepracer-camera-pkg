@@ -126,3 +126,7 @@ The  camera_pkg_launch.py is also included in this package that gives an example
 | Service Name | Service Type | Description |
 | ---------- | ------------ | ----------- |
 | media_state | VideoStateSrv | Service that is called to activate the camera node and start publishing the images to the video_mjpeg and display_mjpeg topics. |
+
+## Resources
+
+* AWS DeepRacer Opensource getting started: [https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md)
