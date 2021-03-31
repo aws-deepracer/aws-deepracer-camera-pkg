@@ -2,7 +2,7 @@
 
 ## Overview
 
-The DeepRacer Camera ROS package creates the *camera_node* which is part of the core AWS DeepRacer application and will be launched from the deepracer_launcher. More details about the application and the components can be found [here](https://github.com/awsdeepracer/aws-deepracer-launcher).
+The DeepRacer Camera ROS package creates the *camera_node* which is part of the core AWS DeepRacer application and will be launched from the deepracer_launcher. More details about the application and the components can be found [here](https://github.com/aws-deepracer/aws-deepracer-launcher).
 
 This node is responsible for reading the raw data from the one/two cameras connected to the USB slots at the front of the device and publishing them as CameraMsg at the rate at which they are read.
 
@@ -14,7 +14,7 @@ The source code is released under Apache 2.0 (https://aws.amazon.com/apache-2-0/
 
 ### Prerequisites
 
-The DeepRacer device comes with all the pre-requisite packages and libraries installed to run the camera_pkg. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
+The DeepRacer device comes with all the pre-requisite packages and libraries installed to run the camera_pkg. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
 
 The camera_pkg specifically depends on the following ROS2 packages as build and execute dependencies:
 
@@ -43,7 +43,7 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 
 1. Clone the camera_pkg on the DeepRacer device:
 
-        git clone https://github.com/awsdeepracer/aws-deepracer-camera-pkg.git
+        git clone https://github.com/aws-deepracer/aws-deepracer-camera-pkg.git
 
 1. Fetch unreleased dependencies:
 
@@ -141,4 +141,4 @@ The  camera_pkg_launch.py is also included in this package that gives an example
 
 ## Resources
 
-* AWS DeepRacer Opensource getting started: [https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md)
+* AWS DeepRacer Opensource getting started: [https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md)
