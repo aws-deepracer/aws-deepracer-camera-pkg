@@ -1,10 +1,10 @@
-# AWS DeepRacer Camera Package 
+# AWS DeepRacer camera package 
 
 ## Overview
 
-The DeepRacer Camera ROS package creates the *camera_node* which is part of the core AWS DeepRacer application and will be launched from the deepracer_launcher. More details about the application and the components can be found [here](https://github.com/aws-deepracer/aws-deepracer-launcher).
+The AWS DeepRacer camera ROS package creates the `camera_node`, which is part of the core AWS DeepRacer application and launches from the `deepracer_launcher`. For more information about the application and the components, see the [`aws-deepracer-launcher` repository](https://github.com/aws-deepracer/aws-deepracer-launcher).
 
-This node is responsible for reading the raw data from the one/two cameras connected to the USB slots at the front of the device and publishing them as CameraMsg at the rate at which they are read.
+This node is responsible for reading the raw data from the one or two cameras connected to the USB slots at the front of the device and publishing them as `CameraMsg` at the rate at which they are read.
 
 ## License
 
@@ -12,27 +12,29 @@ The source code is released under Apache 2.0 (https://aws.amazon.com/apache-2-0/
 
 ## Installation
 
+Follow these steps to install the AWS DeepRacer camera package.
+
 ### Prerequisites
 
-The DeepRacer device comes with all the pre-requisite packages and libraries installed to run the camera_pkg. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
+The AWS DeepRacer device comes with all the prerequisite packages and libraries installed to run the `camera_pkg`. For more information about the preinstalled set of packages and libraries on the AWS DeepRacer, and about installing the required build systems, see [Getting started with AWS DeepRacer OpenSource](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md).
 
-The camera_pkg specifically depends on the following ROS2 packages as build and execute dependencies:
+The `camera_pkg` specifically depends on the following ROS 2 packages as build and execute dependencies:
 
-1. *deepracer_interfaces_pkg* - This packages contains the custom message and service type definitions used across the AWS DeepRacer core application.
-2. *cv_bridge* - This contains CvBridge, which converts between ROS Image messages and OpenCV images.
-3. *image_transport* - It provides transparent support for transporting images in low-bandwidth compressed formats.
-4. *sensor_msgs* - This package defines messages for commonly used sensors, including cameras and scanning laser rangefinders.
+1. `deepracer_interfaces_pkg`: This package contains the custom message and service-type definitions used across the AWS DeepRacer core application.
+2. `cv_bridge`: This package contains CvBridge, which converts between ROS Image messages and OpenCV images.
+3. `image_transport`: This package provides transparent support for transporting images in low-bandwidth compressed formats.
+4. `sensor_msgs`: This package defines messages for commonly used sensors, including cameras and scanning laser rangefinders.
 
 
-## Downloading and Building
+## Downloading and building
 
-Open up a terminal on the DeepRacer device and run the following commands as root user.
+Open a terminal on the AWS DeepRacer device and run the following commands as the root user.
 
-1. Switch to root user before you source the ROS2 installation:
+1. Switch to the root user before you source the ROS 2 installation:
 
         sudo su
 
-1. Source the ROS2 Foxy setup bash script:
+1. Source the ROS 2 Foxy setup bash script:
 
         source /opt/ros/foxy/setup.bash 
 
@@ -41,7 +43,7 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
         mkdir -p ~/deepracer_ws
         cd ~/deepracer_ws
 
-1. Clone the camera_pkg on the DeepRacer device:
+1. Clone the `camera_pkg` on the AWS DeepRacer device:
 
         git clone https://github.com/aws-deepracer/aws-deepracer-camera-pkg.git
 
@@ -50,28 +52,28 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
         cd ~/deepracer_ws/aws-deepracer-camera-pkg
         rosws update
 
-1. Resolve the camera_pkg dependencies:
+1. Resolve the `camera_pkg` dependencies:
 
         cd ~/deepracer_ws/aws-deepracer-camera-pkg && apt-get update
         rosdep install -i --from-path . --rosdistro foxy -y
 
-1. Build the camera_pkg and deepracer_interfaces_pkg:
+1. Build the `camera_pkg` and `deepracer_interfaces_pkg`:
 
         cd ~/deepracer_ws/aws-deepracer-camera-pkg && colcon build --packages-select camera_pkg deepracer_interfaces_pkg
 
 ## Usage
 
-The camera_node provides the core functionality to combine the camera data from the cameras connected to the USB slots at the front of the DeepRacer vehicle. Although the nodes is built to work with the AWS DeepRacer application, it can be run independently for development/testing/debugging purposes.
+The `camera_node` provides the core functionality to combine the camera data from the cameras connected to the USB slots at the front of the AWS DeepRacer vehicle. Although the node is built to work with the AWS DeepRacer application, it can be run independently for development, testing, and debugging purposes.
 
 ### Run the node
 
-To launch the built camera_node as root user on the DeepRacer device open up another terminal on the DeepRacer device and run the following commands as root user:
+To launch the built `camera_node` as the root user on the AWS DeepRacer device, open another terminal on the AWS DeepRacer device and run the following commands as the root user:
 
-1. Switch to root user before you source the ROS2 installation:
+1. Switch to the root user before you source the ROS 2 installation:
 
         sudo su
 
-1. Source the ROS2 Foxy setup bash script:
+1. Source the ROS 2 Foxy setup bash script:
 
         source /opt/ros/foxy/setup.bash 
 
@@ -79,19 +81,19 @@ To launch the built camera_node as root user on the DeepRacer device open up ano
 
         source ~/deepracer_ws/aws-deepracer-camera-pkg/install/setup.bash 
 
-1. Launch the camera_node using the launch script:
+1. Launch the `camera_node` using the launch script:
 
         ros2 launch camera_pkg camera_pkg_launch.py
 
-### Activating the camera image publisher using CLI:
+### Activating the camera image publisher using the CLI
 
-Once the camera_pkg_launch.py has been kicked-off, open up a adjacent new terminal as root user:
+Once the `camera_pkg_launch.py` has been kicked off, open an adjacent new terminal as the root user:
 
-1. Switch to root user before you source the ROS2 installation:
+1. Switch to the root user before you source the ROS 2 installation:
 
         sudo su
 
-1. Source the ROS2 Foxy setup bash script:
+1. Source the ROS 2 Foxy setup bash script:
 
         source /opt/ros/foxy/setup.bash
 
@@ -99,14 +101,14 @@ Once the camera_pkg_launch.py has been kicked-off, open up a adjacent new termin
 
         source ~/deepracer_ws/aws-deepracer-camera-pkg/install/setup.bash 
 
-1. Activate the camera publisher to start publishing images using the below ros2 service call:
+1. Activate the camera publisher to start publishing images using the following ROS 2 service call:
 
         ros2 service call /camera_pkg/media_state deepracer_interfaces_pkg/srv/VideoStateSrv "{activate_video: 1}"
 
 
-## Launch Files
+## Launch files
 
-The  camera_pkg_launch.py is also included in this package that gives an example of how to launch the node independently from the core application.
+The `camera_pkg_launch.py` included in this package provides an example demonstrating how to launch the node independently from the core application.
 
         from launch import LaunchDescription
         from launch_ros.actions import Node
@@ -122,23 +124,23 @@ The  camera_pkg_launch.py is also included in this package that gives an example
             ])
 
 
-## Node Details
+## Node details
 
-### camera_node
+### `camera_node`
 
-#### Published Topics
+#### Published topics
 
-| Topic Name | Message Type | Description |
+| Topic name | Message type | Description |
 | ---------- | ------------ | ----------- |
-| /camera_pkg/video_mjpeg | CameraMsg | Publisher to publish the single camera or two camera images read from the cameras connected to the USB slots at the front of the device. |
-| /camera_pkg/display_mjpeg | Image | Publisher to publish one camera image for display purposes in the device console UI.|
+| /`camera_pkg`/`video_mjpeg` | `CameraMsg` | Publisher that publishes the single-camera or two-camera images read from the cameras connected to the USB slots at the front of the device. |
+| /`camera_pkg`/`display_mjpeg` | Image | Publisher that publishes one camera image for display purposes in the device console UI.|
 
 #### Services
 
-| Service Name | Service Type | Description |
+| Service name | Service type | Description |
 | ---------- | ------------ | ----------- |
-| media_state | VideoStateSrv | Service that is called to activate the camera node and start publishing the images to the video_mjpeg and display_mjpeg topics. |
+| `media_state` | `VideoStateSrv` | Service that is called to activate the camera node and start publishing the images to the `video_mjpeg` and `display_mjpeg` topics. |
 
 ## Resources
 
-* AWS DeepRacer Opensource getting started: [https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md)
+* [Getting started with AWS DeepRacer OpenSource](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md)
