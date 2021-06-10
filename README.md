@@ -18,7 +18,7 @@ Follow these steps to install the AWS DeepRacer camera package.
 
 The AWS DeepRacer device comes with all the prerequisite packages and libraries installed to run the `camera_pkg`. For more information about the preinstalled set of packages and libraries on the AWS DeepRacer, and about installing the required build systems, see [Getting started with AWS DeepRacer OpenSource](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md).
 
-The `camera_pkg` specifically depends on the following ROS 2 packages as build and execute dependencies:
+The `camera_pkg` specifically depends on the following ROS 2 packages as build and run dependencies:
 
 1. `deepracer_interfaces_pkg`: This package contains the custom message and service-type definitions used across the AWS DeepRacer core application.
 2. `cv_bridge`: This package contains CvBridge, which converts between ROS Image messages and OpenCV images.
@@ -63,7 +63,7 @@ Open a terminal on the AWS DeepRacer device and run the following commands as th
 
 ## Usage
 
-The `camera_node` provides the core functionality to combine the camera data from the cameras connected to the USB slots at the front of the AWS DeepRacer vehicle. Although the node is built to work with the AWS DeepRacer application, it can be run independently for development, testing, and debugging purposes.
+The `camera_node` provides the core functionality to combine the camera data from the cameras connected to the USB slots at the front of the AWS DeepRacer vehicle. Although the node is built to work with the AWS DeepRacer application, you can run it independently for development, testing, and debugging purposes.
 
 ### Run the node
 
