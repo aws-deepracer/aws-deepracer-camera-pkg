@@ -139,6 +139,9 @@ namespace MediaEng {
         void produceFrames() {
             while (produceFrames_) {
                 deepracer_interfaces_pkg::msg::CameraMsg msg;
+                std_msgs::msg::Header header;
+                header.stamp = this->get_clock()->now();
+
                 for (auto& cap :  videoCaptureList_) {
                     if (!cap.isOpened()) {
                         continue;
