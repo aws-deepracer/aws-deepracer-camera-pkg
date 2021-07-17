@@ -134,6 +134,9 @@ namespace MediaEng {
         void produceFrames() {
             while (produceFrames_) {
                 deepracer_interfaces_pkg::msg::CameraMsg msg;
+                std_msgs::msg::Header header;
+                header.stamp = this->get_clock()->now();
+
                 for (auto& cap :  videoCaptureList_) {
                     if (!cap.isOpened()) {
                         continue;
@@ -145,7 +148,7 @@ namespace MediaEng {
                         continue;
                     }
                     try {
-                            msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg().get()));
+                            msg.images.push_back(*(cv_bridge::CvImage(header, "bgr8", frame).toImageMsg().get()));
                     }
                     catch (cv_bridge::Exception& e) {
                         RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
