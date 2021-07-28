@@ -120,8 +120,18 @@ The `camera_pkg_launch.py` included in this package provides an example demonstr
                     namespace='camera_pkg',
                     executable='camera_node',
                     name='camera_node'
+                    parameters=[
+                        {'resize_images': False}
+                ]
                 )
             ])
+
+
+### Configuration file and parameters
+
+| Parameter name   | Description  |
+| ---------------- |  ----------- |
+| `resize_images` | Set to `True` or `False` depending on if you want to resize the images in camera_pkg |
 
 
 ## Node details

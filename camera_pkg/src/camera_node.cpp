@@ -26,11 +26,12 @@
 #include <memory>
 
 namespace MediaEng {
+    #define DEFAULT_IMAGE_WIDTH 160
+    #define DEFAULT_IMAGE_HEIGHT 120
     class CameraNode : public rclcpp::Node
     {
     /// This class creates the camera_node responsible to read data from the cameras
     /// and publish it as images.
-
     public:
         const char* CAMERA_MSG_TOPIC = "video_mjpeg";
         const char* DISPLAY_MSG_TOPIC = "display_mjpeg";
@@ -41,9 +42,13 @@ namespace MediaEng {
         ///                      indices where the camera is connected.
         CameraNode(const std::string & node_name, const std::vector<int> cameraIdxList)
         : Node(node_name),
-        produceFrames_(false)
+        produceFrames_(false),
+        resizeImages_(true)
         {
             RCLCPP_INFO(this->get_logger(), "%s started", node_name.c_str());
+            this->declare_parameter<bool>("resize_images", resizeImages_);
+            // Update resizeImages boolean based on the parameter
+            resizeImages_ = this->get_parameter("resize_images").as_bool();
 
             // Scan and load only valid streamers to Video Capture list.
             scanCameraIndex(cameraIdxList);
@@ -145,7 +150,10 @@ namespace MediaEng {
                         continue;
                     }
                     try {
-                            msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg().get()));
+                        if(resizeImages_) {
+                            cv::resize(frame, frame, cv::Size(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT));
+                        }
+                        msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg().get()));
                     }
                     catch (cv_bridge::Exception& e) {
                         RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
@@ -171,6 +179,8 @@ namespace MediaEng {
         rclcpp::Service<deepracer_interfaces_pkg::srv::VideoStateSrv>::SharedPtr activateCameraService_;
         /// Boolean for starting and stopping the worker thread.
         std::atomic<bool> produceFrames_;
+        /// Boolean to resize images.
+        std::atomic<bool> resizeImages_;
         /// List of OpenCV video capture object used to retrieve frames from the cameras.
         std::vector<cv::VideoCapture> videoCaptureList_;
         /// List of valid camera indices identified after scanning.
