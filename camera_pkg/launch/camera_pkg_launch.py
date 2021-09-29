@@ -26,7 +26,8 @@ def generate_launch_description():
             executable='camera_node',
             name='camera_node',
             parameters=[
-                {'resize_images': True}
+                {'resize_images': 4},
+                {'display_topic_enable': True}
             ]
         )
     ])

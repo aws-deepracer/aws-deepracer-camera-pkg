@@ -121,7 +121,8 @@ The `camera_pkg_launch.py` included in this package provides an example demonstr
                     executable='camera_node',
                     name='camera_node'
                     parameters=[
-                        {'resize_images': False}
+                        {'resize_images': 4},
+                        {'display_topic_enable': True}
                 ]
                 )
             ])
@@ -131,7 +132,8 @@ The `camera_pkg_launch.py` included in this package provides an example demonstr
 
 | Parameter name   | Description  |
 | ---------------- |  ----------- |
-| `resize_images` | Set to `True` or `False` depending on if you want to resize the images in camera_pkg |
+| `resize_images` | Set to positive integer depending on if you want to resize the images in camera_pkg. Use 1 for no resizing |
+| `display_topic_enable` | Set to true if you want to enable the `camera_pkg`/`display_mjpeg` topic |
 
 
 ## Node details
