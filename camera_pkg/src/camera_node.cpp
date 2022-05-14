@@ -43,18 +43,29 @@ namespace MediaEng {
         CameraNode(const std::string & node_name, const std::vector<int> cameraIdxList)
         : Node(node_name),
         produceFrames_(false),
-        downscaleImages_(4),
-        enableDisplayPub_(true)
+        resizeImages_(true),
+        resizeImagesFactor_(4),
+        enableDisplayPub_(true),
+        framesPerSecond_(0),
+        imageFrameId_(0)
         {
             RCLCPP_INFO(this->get_logger(), "%s started", node_name.c_str());
-            this->declare_parameter<int>("downscale_images", downscaleImages_);
+            
+            this->declare_parameter<bool>("resize_images", resizeImages_);
+            // Update resizeImages boolean based on the parameter
+            resizeImages_ = this->get_parameter("resize_images").as_bool();
+
+            this->declare_parameter<int>("resize_images_factor", resizeImagesFactor_);
             // Update downscaleImages int based on the parameter
-            downscaleImages_ = this->get_parameter("downscale_images").as_int();
+            resizeImagesFactor_ = this->get_parameter("resize_images_factor").as_int();
 
             this->declare_parameter<bool>("display_topic_enable", enableDisplayPub_);
             // Enable the Display Msg Topic
             enableDisplayPub_ = this->get_parameter("display_topic_enable").as_bool();
 
+            this->declare_parameter<int>("fps", framesPerSecond_);
+            // Set the number of FPS you want - if 0 then leave to camera
+            framesPerSecond_ = this->get_parameter("fps").as_int();
 
             // Scan and load only valid streamers to Video Capture list.
             scanCameraIndex(cameraIdxList);
@@ -97,6 +108,11 @@ namespace MediaEng {
                 videoCaptureList_.push_back(cap);
                 videoCaptureList_.back().set(cv::CAP_PROP_FOURCC,
                                             cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+                // Set the FPS
+                if (framesPerSecond_ > 0) {
+                    RCLCPP_INFO(this->get_logger(), "[Camera Package] Setting %d fps on index %d.", framesPerSecond_.load(), idx);
+                    videoCaptureList_.back().set(cv::CAP_PROP_FPS, framesPerSecond_.load());
+                }
                 // Add to valid video index list
                 videoIndexList_.push_back(idx);
             }
@@ -148,7 +164,7 @@ namespace MediaEng {
                 deepracer_interfaces_pkg::msg::CameraMsg msg;
                 std_msgs::msg::Header header;
                 header.stamp = this->get_clock()->now();
-
+                header.frame_id = std::to_string(imageFrameId_++);
                 for (auto& cap :  videoCaptureList_) {
                     if (!cap.isOpened()) {
                         continue;
@@ -160,8 +176,8 @@ namespace MediaEng {
                         continue;
                     }
                     try {
-                        if(downscaleImages_ > 1) {
-                            cv::resize(frame, frame, cv::Size((int) DEFAULT_IMAGE_WIDTH / downscaleImages_, (int) DEFAULT_IMAGE_HEIGHT / downscaleImages_));
+                        if(resizeImages_) {
+                            cv::resize(frame, frame, cv::Size((int) DEFAULT_IMAGE_WIDTH / resizeImagesFactor_, (int) DEFAULT_IMAGE_HEIGHT / resizeImagesFactor_));
                         }
                         msg.images.push_back(*(cv_bridge::CvImage(header, "bgr8", frame).toImageMsg().get()));
                     }
@@ -190,10 +206,14 @@ namespace MediaEng {
         rclcpp::Service<deepracer_interfaces_pkg::srv::VideoStateSrv>::SharedPtr activateCameraService_;
         /// Boolean for starting and stopping the worker thread.
         std::atomic<bool> produceFrames_;
+        /// Boolean to resize images.
+        std::atomic<bool> resizeImages_;        
         /// Factor (int) to downscale images.
-        std::atomic<int64_t> downscaleImages_;
+        std::atomic<int> resizeImagesFactor_;
         /// Boolean for enabling the display mpeg topic.
-        std::atomic<bool> enableDisplayPub_;        
+        std::atomic<bool> enableDisplayPub_;       
+        /// Int for defining the camera FPS.
+        std::atomic<int> framesPerSecond_;              
         /// List of OpenCV video capture object used to retrieve frames from the cameras.
         std::vector<cv::VideoCapture> videoCaptureList_;
         /// List of valid camera indices identified after scanning.
@@ -202,6 +222,8 @@ namespace MediaEng {
         std::thread videoWorker_;
         /// Camera index parameter to capture video frames from the specific camera.
         int cameraIndex_;
+        /// Frame ID
+        long imageFrameId_;
     };
 }
 
