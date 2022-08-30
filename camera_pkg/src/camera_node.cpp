@@ -98,6 +98,13 @@ namespace MediaEng {
             for (auto idx : cameraIdxList){
                 RCLCPP_INFO(this->get_logger(), "Scanning Camera Index %d ", idx);
                 auto cap = cv::VideoCapture(idx, cv::CAP_V4L);
+                // Set the FPS
+                if (framesPerSecond_ > 0 && cap.isOpened())
+                {
+                    RCLCPP_INFO(this->get_logger(), "[Camera Package] Changing from %d to %d fps on index %d.",
+                                (int)cap.get(cv::CAP_PROP_FPS), framesPerSecond_.load(), idx);
+                    cap.set(cv::CAP_PROP_FPS, framesPerSecond_.load());
+                }
                 cv::Mat test_frame;
                 cap >> test_frame;
                 if(test_frame.empty() || !cap.isOpened()){
@@ -105,14 +112,9 @@ namespace MediaEng {
                     continue;
                 }
                 // Add to valid video capture list
-                videoCaptureList_.push_back(cap);
+                videoCaptureList_.push_back(cap);              
                 videoCaptureList_.back().set(cv::CAP_PROP_FOURCC,
                                             cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-                // Set the FPS
-                if (framesPerSecond_ > 0) {
-                    RCLCPP_INFO(this->get_logger(), "[Camera Package] Setting %d fps on index %d.", framesPerSecond_.load(), idx);
-                    videoCaptureList_.back().set(cv::CAP_PROP_FPS, framesPerSecond_.load());
-                }
                 // Add to valid video index list
                 videoIndexList_.push_back(idx);
             }
