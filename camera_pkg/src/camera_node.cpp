@@ -16,6 +16,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/compressed_image.hpp"
 #include "cv_bridge/cv_bridge.h"
 #include "deepracer_interfaces_pkg/srv/video_state_srv.hpp"
 #include "deepracer_interfaces_pkg/msg/camera_msg.hpp"
@@ -78,7 +79,7 @@ namespace MediaEng {
             // The queue size for displayPub_ is set to 10 because web_video_server subscribes to the camera_node and the 
             // image callback is blocked since it probably expects to send a frame which has been lost due to small publisher queue size of 1 earlier.
             if (enableDisplayPub_)
-                displayPub_ = this->create_publisher<sensor_msgs::msg::Image>(DISPLAY_MSG_TOPIC, 10);
+                displayPub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>(DISPLAY_MSG_TOPIC, 10);
             
             // Create a service to activate the publish of camera images.
             activateCameraService_ = this->create_service<deepracer_interfaces_pkg::srv::VideoStateSrv>(
@@ -181,7 +182,7 @@ namespace MediaEng {
                         if(resizeImages_) {
                             cv::resize(frame, frame, cv::Size((int) DEFAULT_IMAGE_WIDTH / resizeImagesFactor_, (int) DEFAULT_IMAGE_HEIGHT / resizeImagesFactor_));
                         }
-                        msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg().get()));
+                        msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toCompressedImageMsg().get()));
                     }
                     catch (cv_bridge::Exception& e) {
                         RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
@@ -203,7 +204,7 @@ namespace MediaEng {
         /// ROS publisher object to the publish camera images to camera message topic.
         rclcpp::Publisher<deepracer_interfaces_pkg::msg::CameraMsg>::SharedPtr videoPub_;
         /// ROS publisher object to the publish camera images to display message topic.
-        rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr displayPub_;
+        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr displayPub_;
         /// ROS service object to activate the camera to publish images.
         rclcpp::Service<deepracer_interfaces_pkg::srv::VideoStateSrv>::SharedPtr activateCameraService_;
         /// Boolean for starting and stopping the worker thread.
