@@ -121,7 +121,10 @@ The `camera_pkg_launch.py` included in this package provides an example demonstr
                     executable='camera_node',
                     name='camera_node'
                     parameters=[
-                        {'resize_images': False}
+                        {'resize_images': True},
+                        {'resize_images_factor': 4},
+                        {'fps': 0},
+                        {'display_topic_enable': True}
                 ]
                 )
             ])
@@ -132,6 +135,9 @@ The `camera_pkg_launch.py` included in this package provides an example demonstr
 | Parameter name   | Description  |
 | ---------------- |  ----------- |
 | `resize_images` | Set to `True` or `False` depending on if you want to resize the images in camera_pkg |
+| `resize_images_factor` | Will downscale the image with a factor. Default is 4 to create 160 x 120 pixel image |
+| `fps` | Will limit the number of pictures per second that are captured. Default value is 0 which will let camera control frames per second | 
+| `display_topic_enable` | Set to true if you want to enable the `camera_pkg`/`display_mjpeg` topic |
 
 
 ## Node details

@@ -16,18 +16,20 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/compressed_image.hpp"
 #include "cv_bridge/cv_bridge.h"
 #include "deepracer_interfaces_pkg/srv/video_state_srv.hpp"
 #include "deepracer_interfaces_pkg/msg/camera_msg.hpp"
 #include "opencv2/opencv.hpp"
+#include "image_transport/image_transport.hpp"
 
 #include <thread>
 #include <atomic>
 #include <memory>
 
 namespace MediaEng {
-    #define DEFAULT_IMAGE_WIDTH 160
-    #define DEFAULT_IMAGE_HEIGHT 120
+    #define DEFAULT_IMAGE_WIDTH 640
+    #define DEFAULT_IMAGE_HEIGHT 480
     class CameraNode : public rclcpp::Node
     {
     /// This class creates the camera_node responsible to read data from the cameras
@@ -42,13 +44,32 @@ namespace MediaEng {
         ///                      indices where the camera is connected.
         CameraNode(const std::string & node_name, const std::vector<int> cameraIdxList)
         : Node(node_name),
+        node_handle_(std::shared_ptr<CameraNode>(this, [](auto *) {})),
+        image_transport_(node_handle_),
         produceFrames_(false),
-        resizeImages_(true)
+        resizeImages_(true),
+        resizeImagesFactor_(4),
+        enableDisplayPub_(true),
+        framesPerSecond_(0),
+        imageFrameId_(0)    
         {
             RCLCPP_INFO(this->get_logger(), "%s started", node_name.c_str());
+            
             this->declare_parameter<bool>("resize_images", resizeImages_);
             // Update resizeImages boolean based on the parameter
             resizeImages_ = this->get_parameter("resize_images").as_bool();
+
+            this->declare_parameter<int>("resize_images_factor", resizeImagesFactor_);
+            // Update downscaleImages int based on the parameter
+            resizeImagesFactor_ = this->get_parameter("resize_images_factor").as_int();
+
+            this->declare_parameter<bool>("display_topic_enable", enableDisplayPub_);
+            // Enable the Display Msg Topic
+            enableDisplayPub_ = this->get_parameter("display_topic_enable").as_bool();
+
+            this->declare_parameter<int>("fps", framesPerSecond_);
+            // Set the number of FPS you want - if 0 then leave to camera
+            framesPerSecond_ = this->get_parameter("fps").as_int();
 
             // Scan and load only valid streamers to Video Capture list.
             scanCameraIndex(cameraIdxList);
@@ -60,7 +81,8 @@ namespace MediaEng {
             // This displays only the left/center camera images. Modify if the requirement is to publish images from both cameras.
             // The queue size for displayPub_ is set to 10 because web_video_server subscribes to the camera_node and the 
             // image callback is blocked since it probably expects to send a frame which has been lost due to small publisher queue size of 1 earlier.
-            displayPub_ = this->create_publisher<sensor_msgs::msg::Image>(DISPLAY_MSG_TOPIC, 10);
+            if(enableDisplayPub_)
+                displayPub_ = image_transport_.advertise(DISPLAY_MSG_TOPIC, 10);
             
             // Create a service to activate the publish of camera images.
             activateCameraService_ = this->create_service<deepracer_interfaces_pkg::srv::VideoStateSrv>(
@@ -80,6 +102,13 @@ namespace MediaEng {
             for (auto idx : cameraIdxList){
                 RCLCPP_INFO(this->get_logger(), "Scanning Camera Index %d ", idx);
                 auto cap = cv::VideoCapture(idx, cv::CAP_V4L);
+                // Set the FPS
+                if (framesPerSecond_ > 0 && cap.isOpened())
+                {
+                    RCLCPP_INFO(this->get_logger(), "[Camera Package] Changing from %d to %d fps on index %d.",
+                                (int)cap.get(cv::CAP_PROP_FPS), framesPerSecond_.load(), idx);
+                    cap.set(cv::CAP_PROP_FPS, framesPerSecond_.load());
+                }
                 cv::Mat test_frame;
                 cap >> test_frame;
                 if(test_frame.empty() || !cap.isOpened()){
@@ -87,7 +116,7 @@ namespace MediaEng {
                     continue;
                 }
                 // Add to valid video capture list
-                videoCaptureList_.push_back(cap);
+                videoCaptureList_.push_back(cap);              
                 videoCaptureList_.back().set(cv::CAP_PROP_FOURCC,
                                             cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
                 // Add to valid video index list
@@ -138,22 +167,31 @@ namespace MediaEng {
         /// to run in a separate thread.
         void produceFrames() {
             while (produceFrames_) {
-                deepracer_interfaces_pkg::msg::CameraMsg msg;
+                deepracer_interfaces_pkg::msg::CameraMsg cameraMsg;
+                sensor_msgs::msg::Image displayMsg;
+                std_msgs::msg::Header header;
+                bool firstCamera = true;
+                header.frame_id = std::to_string(imageFrameId_++);
                 for (auto& cap :  videoCaptureList_) {
                     if (!cap.isOpened()) {
                         continue;
                     }
                     cv::Mat frame;
                     cap >> frame;
+                    header.stamp = this->get_clock()->now();
                     if (frame.empty()) {
                         RCLCPP_ERROR(this->get_logger(), "No frame returned. Check if camera is plugged in correctly.");
                         continue;
                     }
                     try {
                         if(resizeImages_) {
-                            cv::resize(frame, frame, cv::Size(DEFAULT_IMAGE_WIDTH, DEFAULT_IMAGE_HEIGHT));
+                            cv::resize(frame, frame, cv::Size((int) DEFAULT_IMAGE_WIDTH / resizeImagesFactor_, (int) DEFAULT_IMAGE_HEIGHT / resizeImagesFactor_));
                         }
-                        msg.images.push_back(*(cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg().get()));
+                        if(enableDisplayPub_ && firstCamera){
+                            displayMsg = *(cv_bridge::CvImage(header, "bgr8", frame).toImageMsg().get());
+                            firstCamera = false;
+                        }
+                        cameraMsg.images.push_back(*(cv_bridge::CvImage(header, "bgr8", frame).toCompressedImageMsg().get()));
                     }
                     catch (cv_bridge::Exception& e) {
                         RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
@@ -162,25 +200,37 @@ namespace MediaEng {
                     }
                 }
                 try {
-                    displayPub_->publish(msg.images.front());
-                    videoPub_->publish(msg);
+                    if (enableDisplayPub_)
+                        displayPub_.publish(displayMsg);
+                    videoPub_->publish(cameraMsg);
                 }
                     catch (const std::exception &ex) {
                     RCLCPP_ERROR(this->get_logger(), "Publishing camera images to topics failed %s", ex.what());
                 }
+                firstCamera = true;
             }
         }
 
         /// ROS publisher object to the publish camera images to camera message topic.
         rclcpp::Publisher<deepracer_interfaces_pkg::msg::CameraMsg>::SharedPtr videoPub_;
+        /// Pointer to itself
+        rclcpp::Node::SharedPtr node_handle_;
+        /// Image transport object
+        image_transport::ImageTransport image_transport_;       
         /// ROS publisher object to the publish camera images to display message topic.
-        rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr displayPub_;
+        image_transport::Publisher displayPub_;
         /// ROS service object to activate the camera to publish images.
         rclcpp::Service<deepracer_interfaces_pkg::srv::VideoStateSrv>::SharedPtr activateCameraService_;
         /// Boolean for starting and stopping the worker thread.
         std::atomic<bool> produceFrames_;
         /// Boolean to resize images.
-        std::atomic<bool> resizeImages_;
+        std::atomic<bool> resizeImages_;        
+        /// Factor (int) to downscale images.
+        std::atomic<int> resizeImagesFactor_;
+        /// Boolean for enabling the display mpeg topic.
+        std::atomic<bool> enableDisplayPub_;       
+        /// Int for defining the camera FPS.
+        std::atomic<int> framesPerSecond_;              
         /// List of OpenCV video capture object used to retrieve frames from the cameras.
         std::vector<cv::VideoCapture> videoCaptureList_;
         /// List of valid camera indices identified after scanning.
@@ -189,6 +239,8 @@ namespace MediaEng {
         std::thread videoWorker_;
         /// Camera index parameter to capture video frames from the specific camera.
         int cameraIndex_;
+        /// Frame ID
+        long imageFrameId_;
     };
 }
 
@@ -206,7 +258,10 @@ int main(int argc, char * argv[])
     // In case of Stereo Cameras: The index with greater number represents Left Camera.
     std::vector<int> cameraIndex {4, 3, 2, 1, 0};
     // Create the camera_node.
-    rclcpp::spin(std::make_shared<MediaEng::CameraNode>("camera_node", cameraIndex));
+    auto node = std::make_shared<MediaEng::CameraNode>("camera_node", cameraIndex);
+    rclcpp::executors::MultiThreadedExecutor exec;
+    exec.add_node(node);
+    exec.spin();
     rclcpp::shutdown();
     return 0;
 }
